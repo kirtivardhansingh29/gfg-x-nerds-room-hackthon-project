@@ -1,4 +1,20 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+function getApiBaseUrl() {
+  const configuredBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+  if (configuredBaseUrl) {
+    return configuredBaseUrl.replace(/\/$/, "");
+  }
+
+  if (typeof window !== "undefined") {
+    const { hostname } = window.location;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://localhost:8000";
+    }
+  }
+
+  throw new Error(
+    "Backend URL is not configured. Set NEXT_PUBLIC_API_BASE_URL to your deployed backend URL."
+  );
+}
 
 async function parseResponse(response) {
   const payload = await response.json().catch(() => ({}));
@@ -10,31 +26,45 @@ async function parseResponse(response) {
   return payload;
 }
 
+async function apiRequest(path, options = {}) {
+  const apiBaseUrl = getApiBaseUrl();
+
+  try {
+    const response = await fetch(`${apiBaseUrl}${path}`, options);
+    return await parseResponse(response);
+  } catch (error) {
+    const message = String(error?.message || error || "");
+
+    if (message.includes("Failed to fetch")) {
+      throw new Error(
+        "Cannot reach the backend. Check NEXT_PUBLIC_API_BASE_URL, backend health, and BACKEND_CORS_ORIGINS."
+      );
+    }
+
+    throw error;
+  }
+}
+
 export async function fetchSchema() {
-  const response = await fetch(`${API_BASE_URL}/schema`);
-  return parseResponse(response);
+  return apiRequest("/schema");
 }
 
 export async function uploadDataset(file) {
   const formData = new FormData();
   formData.append("file", file);
 
-  const response = await fetch(`${API_BASE_URL}/upload`, {
+  return apiRequest("/upload", {
     method: "POST",
     body: formData,
   });
-
-  return parseResponse(response);
 }
 
 export async function runQuery(payload) {
-  const response = await fetch(`${API_BASE_URL}/query`, {
+  return apiRequest("/query", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(payload),
   });
-
-  return parseResponse(response);
 }

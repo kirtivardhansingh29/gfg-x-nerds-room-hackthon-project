@@ -9,7 +9,7 @@ import requests
 class GeminiService:
     def __init__(self) -> None:
         self.api_key = os.getenv("GEMINI_API_KEY", "").strip()
-        self.model = os.getenv("GEMINI_MODEL", "gemini-1.5-flash").strip()
+        self.model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
         self.timeout_seconds = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
 
     def _build_prompt(
@@ -60,6 +60,34 @@ Rules:
                 raise RuntimeError("Gemini returned a response that could not be parsed as JSON.")
             return json.loads(match.group(0))
 
+    def _raise_api_error(self, response: requests.Response) -> None:
+        status_code = response.status_code
+
+        try:
+            error_payload = response.json()
+        except ValueError:
+            error_payload = {}
+
+        error_message = ""
+        if isinstance(error_payload, dict):
+            error_message = str(error_payload.get("error", {}).get("message", "")).strip()
+
+        if status_code == 404:
+            raise RuntimeError(
+                f"Gemini model '{self.model}' was not found. Update GEMINI_MODEL to a current model such as 'gemini-2.5-flash'."
+            )
+
+        if status_code in {401, 403}:
+            raise RuntimeError("Gemini API authentication failed. Check GEMINI_API_KEY and API access settings.")
+
+        if status_code == 429:
+            raise RuntimeError("Gemini API rate limit reached. Please retry in a moment.")
+
+        if error_message:
+            raise RuntimeError(f"Gemini API request failed ({status_code}): {error_message}")
+
+        raise RuntimeError(f"Gemini API request failed with status {status_code}.")
+
     def generate_sql(
         self,
         question: str,
@@ -93,8 +121,14 @@ Rules:
             },
         }
 
-        response = requests.post(url, json=payload, timeout=self.timeout_seconds)
-        response.raise_for_status()
+        try:
+            response = requests.post(url, json=payload, timeout=self.timeout_seconds)
+        except requests.RequestException as error:
+            raise RuntimeError("Gemini API request could not be completed. Check network access and API availability.") from error
+
+        if not response.ok:
+            self._raise_api_error(response)
+
         payload = response.json()
 
         try:

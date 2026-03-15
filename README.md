@@ -134,7 +134,7 @@ npm run build
 Copy `.env.example` and provide the values in your local environment or deployment platform:
 
 - `GEMINI_API_KEY`: required Gemini API key.
-- `GEMINI_MODEL`: optional model name, defaults to `gemini-1.5-flash`.
+- `GEMINI_MODEL`: optional model name, defaults to `gemini-2.5-flash`.
 - `BACKEND_CORS_ORIGINS`: comma-separated allowed frontend origins.
 - `NEXT_PUBLIC_API_BASE_URL`: frontend base URL for the backend API.
 
