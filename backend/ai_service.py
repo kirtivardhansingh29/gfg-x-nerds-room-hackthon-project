@@ -5,11 +5,18 @@ from typing import Any
 
 import requests
 
+DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+LEGACY_MODEL_ALIASES = {
+    # Older 1.5 model names can linger in deployment env vars.
+    "gemini-1.5-flash": DEFAULT_GEMINI_MODEL,
+}
+
 
 class GeminiService:
     def __init__(self) -> None:
         self.api_key = os.getenv("GEMINI_API_KEY", "").strip()
-        self.model = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+        configured_model = os.getenv("GEMINI_MODEL", DEFAULT_GEMINI_MODEL).strip() or DEFAULT_GEMINI_MODEL
+        self.model = LEGACY_MODEL_ALIASES.get(configured_model, configured_model)
         self.timeout_seconds = int(os.getenv("GEMINI_TIMEOUT_SECONDS", "30"))
 
     def _build_prompt(
@@ -74,7 +81,7 @@ Rules:
 
         if status_code == 404:
             raise RuntimeError(
-                f"Gemini model '{self.model}' was not found. Update GEMINI_MODEL to a current model such as 'gemini-2.5-flash'."
+                f"Gemini model '{self.model}' was not found. Update GEMINI_MODEL to a current model such as '{DEFAULT_GEMINI_MODEL}'."
             )
 
         if status_code in {401, 403}:
