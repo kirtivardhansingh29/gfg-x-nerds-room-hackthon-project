@@ -1,0 +1,40 @@
+# Environment
+.env
+.env.local
+.env.*.local
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.coverage
+coverage/
+
+# Node
+node_modules/
+.next/
+dist/
+
+# Data
+backend/data/*.db
+backend/data/test-runtime/
+.tmp-tests/
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+*.err
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.idea/
+.vscode/
