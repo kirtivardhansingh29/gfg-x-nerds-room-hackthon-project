@@ -48,6 +48,19 @@ class ApiFlowTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json()["detail"], "Only CSV files are supported.")
 
+    def test_upload_accepts_windows_1252_csv(self):
+        csv_content = "customer_name,city_tier\nPEÑA,Tier 1\n"
+
+        response = self.client.post(
+            "/upload",
+            files={"file": ("customers.csv", csv_content.encode("cp1252"), "text/csv")},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertEqual(payload["dataset"]["row_count"], 1)
+        self.assertEqual(payload["dataset"]["preview"][0]["customer_name"], "PEÑA")
+
     def test_upload_and_query_pipeline_returns_chart_metadata(self):
         csv_content = (
             "city_tier,avg_online_spend,monthly_online_orders,shopping_preference\n"

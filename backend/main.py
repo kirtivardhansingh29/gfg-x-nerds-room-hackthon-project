@@ -1,3 +1,4 @@
+import codecs
 import io
 import os
 import re
@@ -19,12 +20,21 @@ from sql_validator import SQLValidationError, apply_result_limit, validate_selec
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "10"))
-MAX_UPLOAD_ROWS = int(os.getenv("MAX_UPLOAD_ROWS", "50000"))
-MAX_UPLOAD_COLUMNS = int(os.getenv("MAX_UPLOAD_COLUMNS", "50"))
+MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "25"))
+MAX_UPLOAD_ROWS = int(os.getenv("MAX_UPLOAD_ROWS", "200000"))
+MAX_UPLOAD_COLUMNS = int(os.getenv("MAX_UPLOAD_COLUMNS", "100"))
 RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("RATE_LIMIT_WINDOW_SECONDS", "60"))
 RATE_LIMIT_MAX_REQUESTS = int(os.getenv("RATE_LIMIT_MAX_REQUESTS", "30"))
 DEFAULT_ALLOWED_ORIGINS = "http://localhost:3000"
+CSV_ENCODING_CANDIDATES = (
+    "utf-8",
+    "utf-8-sig",
+    "cp1252",
+    "latin-1",
+    "utf-16",
+    "utf-16-le",
+    "utf-16-be",
+)
 
 request_log: dict[str, deque[float]] = defaultdict(deque)
 app = FastAPI(title="Baniyabhai AI API", version="1.0.0")
@@ -115,6 +125,59 @@ def build_fallback_summary(results: dict[str, Any]) -> str:
     return f"The query returned {row_count} rows ready for visual exploration."
 
 
+def get_csv_encodings(raw_bytes: bytes) -> list[str]:
+    preferred_encodings: list[str] = []
+
+    if raw_bytes.startswith(codecs.BOM_UTF8):
+        preferred_encodings.append("utf-8-sig")
+    elif raw_bytes.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        preferred_encodings.append("utf-16")
+    elif raw_bytes.startswith((codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE)):
+        preferred_encodings.append("utf-32")
+
+    preferred_encodings.extend(CSV_ENCODING_CANDIDATES)
+
+    seen: set[str] = set()
+    ordered_encodings: list[str] = []
+    for encoding in preferred_encodings:
+        if encoding not in seen:
+            seen.add(encoding)
+            ordered_encodings.append(encoding)
+    return ordered_encodings
+
+
+def read_uploaded_csv(raw_bytes: bytes) -> pd.DataFrame:
+    parse_failures: list[str] = []
+
+    for encoding in get_csv_encodings(raw_bytes):
+        try:
+            return pd.read_csv(io.BytesIO(raw_bytes), encoding=encoding)
+        except UnicodeDecodeError as error:
+            parse_failures.append(f"{encoding}: {error}")
+            continue
+        except pd.errors.ParserError:
+            try:
+                return pd.read_csv(io.BytesIO(raw_bytes), encoding=encoding, sep=None, engine="python")
+            except (UnicodeDecodeError, pd.errors.ParserError, ValueError) as error:
+                parse_failures.append(f"{encoding}: {error}")
+                continue
+        except ValueError as error:
+            parse_failures.append(f"{encoding}: {error}")
+            continue
+
+    if parse_failures:
+        last_failure = parse_failures[-1]
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Unable to read CSV file. Supported encodings include UTF-8, UTF-8 with BOM, Windows-1252, "
+                f"Latin-1, and UTF-16. Last parser error: {last_failure}"
+            ),
+        )
+
+    raise HTTPException(status_code=400, detail="Unable to read CSV file.")
+
+
 @app.get("/")
 def read_root() -> dict[str, str]:
     return {"message": "Baniyabhai AI backend is running."}
@@ -150,11 +213,7 @@ async def upload_dataset(
             detail=f"File is too large. The limit is {MAX_UPLOAD_SIZE_MB} MB.",
         )
 
-    try:
-        dataframe = pd.read_csv(io.BytesIO(raw_bytes))
-    except Exception as error:
-        raise HTTPException(status_code=400, detail=f"Unable to read CSV file: {error}") from error
-
+    dataframe = read_uploaded_csv(raw_bytes)
     cleaned_frame = validate_dataframe(dataframe)
     stored_schema = persist_dataframe(cleaned_frame)
 
