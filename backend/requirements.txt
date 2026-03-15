@@ -4,3 +4,4 @@ pandas>=2.3.0,<3.0.0
 python-multipart>=0.0.9,<1.0.0
 requests>=2.32.3,<3.0.0
 sqlparse>=0.5.1,<1.0.0
+python-dotenv>=1.0.1,<2.0.0

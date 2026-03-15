@@ -3,9 +3,11 @@ import os
 import re
 import time
 from collections import defaultdict, deque
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
+from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -14,6 +16,8 @@ from ai_service import GeminiService
 from chart_service import suggest_chart
 from database import execute_query, get_dataset_schema, persist_dataframe
 from sql_validator import SQLValidationError, apply_result_limit, validate_select_query
+
+load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
 MAX_UPLOAD_SIZE_MB = int(os.getenv("MAX_UPLOAD_SIZE_MB", "10"))
 MAX_UPLOAD_ROWS = int(os.getenv("MAX_UPLOAD_ROWS", "50000"))
