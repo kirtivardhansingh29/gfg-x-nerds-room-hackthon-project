@@ -1,6 +1,8 @@
 import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
 
-const SERIES_COLORS = ["#0F9D8D", "#FF7A59", "#F4B740", "#3B82F6", "#22C55E", "#8B5CF6"];
+import ChartTooltip from "./charts/ChartTooltip";
+import { CHART_COLORS } from "../lib/chartTheme";
+import { humanizeLabel } from "../lib/formatters";
 
 export default function PieChartCard({ chart }) {
   return (
@@ -10,16 +12,21 @@ export default function PieChartCard({ chart }) {
           data={chart.data}
           dataKey={chart.y_axis}
           nameKey={chart.x_axis}
-          innerRadius={60}
-          outerRadius={100}
-          paddingAngle={4}
+          innerRadius={72}
+          outerRadius={108}
+          paddingAngle={3}
+          stroke="#F8FAFC"
+          strokeWidth={2}
         >
-          {chart.data.map((entry, index) => (
-            <Cell key={`${entry[chart.x_axis]}-${index}`} fill={SERIES_COLORS[index % SERIES_COLORS.length]} />
+          {(chart.data || []).map((entry, index) => (
+            <Cell
+              key={`${entry[chart.x_axis]}-${index}`}
+              fill={CHART_COLORS[index % CHART_COLORS.length]}
+            />
           ))}
         </Pie>
-        <Tooltip />
-        <Legend />
+        <Tooltip content={<ChartTooltip />} />
+        <Legend wrapperStyle={{ paddingTop: 12 }} formatter={(value) => humanizeLabel(value)} />
       </PieChart>
     </ResponsiveContainer>
   );

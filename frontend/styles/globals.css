@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +6,9 @@
 
 :root {
   color-scheme: light;
+  --bg-base: #f4f7fb;
+  --bg-grid: rgba(148, 163, 184, 0.08);
+  --ink: #0f172a;
 }
 
 html {
@@ -14,9 +17,27 @@ html {
 
 body {
   margin: 0;
-  font-family: "Manrope", sans-serif;
-  background: #f6f8fc;
-  color: #07111f;
+  min-height: 100vh;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgba(29, 78, 216, 0.12), transparent 32%),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.85), rgba(244, 247, 251, 0.92)),
+    var(--bg-base);
+  color: var(--ink);
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(var(--bg-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.48), transparent 82%);
+  pointer-events: none;
 }
 
 * {
@@ -30,5 +51,23 @@ textarea {
 }
 
 ::selection {
-  background: rgba(15, 157, 141, 0.18);
+  background: rgba(15, 118, 110, 0.18);
+}
+
+.loading-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(226, 232, 240, 0.85), rgba(241, 245, 249, 1), rgba(226, 232, 240, 0.85));
+  background-size: 220% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -20% 0;
+  }
 }

@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: baniyabhai-ai-backend
+    name: baniya-dost-backend
     env: python
     rootDir: backend
     buildCommand: pip install -r requirements.txt

@@ -9,7 +9,8 @@ import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
-DB_PATH = DATA_DIR / "baniyabhai.db"
+DB_PATH = DATA_DIR / "baniya-dost.db"
+LEGACY_DB_PATH = DATA_DIR / "baniyabhai.db"
 DEFAULT_TABLE_NAME = "customers"
 META_TABLE_NAME = "dataset_meta"
 
@@ -46,8 +47,19 @@ def ensure_data_dir() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def migrate_legacy_database() -> None:
+    if DB_PATH.name != "baniya-dost.db":
+        return
+
+    if DB_PATH.exists() or not LEGACY_DB_PATH.exists():
+        return
+
+    LEGACY_DB_PATH.replace(DB_PATH)
+
+
 def get_connection() -> sqlite3.Connection:
     ensure_data_dir()
+    migrate_legacy_database()
     connection = sqlite3.connect(DB_PATH)
     connection.row_factory = sqlite3.Row
     return connection

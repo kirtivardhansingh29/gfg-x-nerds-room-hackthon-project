@@ -37,7 +37,7 @@ CSV_ENCODING_CANDIDATES = (
 )
 
 request_log: dict[str, deque[float]] = defaultdict(deque)
-app = FastAPI(title="Baniyabhai AI API", version="1.0.0")
+app = FastAPI(title="Baniya Dost API", version="1.0.0")
 gemini_service = GeminiService()
 
 
@@ -180,7 +180,7 @@ def read_uploaded_csv(raw_bytes: bytes) -> pd.DataFrame:
 
 @app.get("/")
 def read_root() -> dict[str, str]:
-    return {"message": "Baniyabhai AI backend is running."}
+    return {"message": "Baniya Dost backend is running."}
 
 
 @app.get("/health")

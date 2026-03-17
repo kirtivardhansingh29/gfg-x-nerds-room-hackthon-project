@@ -1,12 +1,17 @@
 import Head from "next/head";
 import { startTransition, useEffect, useState } from "react";
 
+import BrandLogo from "../components/brand/BrandLogo";
 import Dashboard from "../components/Dashboard";
+import KpiStrip from "../components/dashboard/KpiStrip";
+import Navbar from "../components/layout/Navbar";
 import QueryInput from "../components/QueryInput";
 import UploadDataset from "../components/UploadDataset";
+import SurfaceCard from "../components/ui/SurfaceCard";
+import { formatCompactNumber, formatTimestamp, humanizeLabel } from "../lib/formatters";
 import { fetchSchema, runQuery, uploadDataset } from "../services/api";
 
-const SAMPLE_PROMPTS = [
+const STARTER_PROMPTS = [
   "Compare average online spend and store spend by city tier.",
   "Show which age groups place the most monthly online orders.",
   "Is tech savvy score related to monthly online orders?",
@@ -19,31 +24,53 @@ export default function HomePage() {
   const [history, setHistory] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [querying, setQuerying] = useState(false);
+  const [schemaLoading, setSchemaLoading] = useState(true);
   const [statusMessage, setStatusMessage] = useState("Upload a CSV to start exploring your dataset.");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
+    let active = true;
+
     const loadExistingSchema = async () => {
+      setSchemaLoading(true);
+
       try {
         const existingSchema = await fetchSchema();
+
+        if (!active) {
+          return;
+        }
+
         startTransition(() => {
           setSchema(existingSchema);
-          setStatusMessage(`Loaded ${existingSchema.row_count} rows from the active dataset.`);
+          setStatusMessage(`Loaded ${formatCompactNumber(existingSchema.row_count)} rows from the active dataset.`);
         });
       } catch (error) {
+        if (!active) {
+          return;
+        }
+
         if (!String(error.message || "").includes("No dataset")) {
           setErrorMessage(error.message);
+        }
+      } finally {
+        if (active) {
+          setSchemaLoading(false);
         }
       }
     };
 
     loadExistingSchema();
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const handleUpload = async (file) => {
     setUploading(true);
     setErrorMessage("");
-    setStatusMessage("Uploading CSV and preparing the SQLite dataset...");
+    setStatusMessage("Uploading CSV and preparing the dataset workspace...");
 
     try {
       const response = await uploadDataset(file);
@@ -52,7 +79,7 @@ export default function HomePage() {
         setCards([]);
         setHistory([]);
         setStatusMessage(
-          `Dataset ready. ${response.dataset.row_count} rows stored in ${response.dataset.table_name}.`
+          `Dataset ready. ${formatCompactNumber(response.dataset.row_count)} rows indexed in ${response.dataset.table_name}.`
         );
       });
     } catch (error) {
@@ -64,13 +91,13 @@ export default function HomePage() {
   };
 
   const handleQuery = async (question) => {
-    if (!schema) {
+    if (!schema || querying) {
       return;
     }
 
     setQuerying(true);
     setErrorMessage("");
-    setStatusMessage("Generating SQL with Gemini and building your chart...");
+    setStatusMessage("Generating SQL and assembling the next insight card...");
 
     try {
       const response = await runQuery({
@@ -94,7 +121,7 @@ export default function HomePage() {
             summary: response.summary,
           },
         ]);
-        setStatusMessage("Insight ready. Ask a follow-up question to continue the conversation.");
+        setStatusMessage("Insight ready. Ask a follow-up question to keep the analysis moving.");
       });
     } catch (error) {
       setErrorMessage(error.message);
@@ -104,117 +131,223 @@ export default function HomePage() {
     }
   };
 
+  const latestCard = cards[0];
+  const kpis = [
+    {
+      label: "Rows Indexed",
+      value: schema ? formatCompactNumber(schema.row_count) : "--",
+      badge: "Data",
+      helper: schema ? "Ready for validated SQL analysis." : "Upload a CSV to start your workspace.",
+      tone: "accent",
+    },
+    {
+      label: "Fields Mapped",
+      value: schema ? schema.columns.length : "--",
+      badge: "Schema",
+      helper: schema ? "Sanitized columns with inferred types." : "Column metadata appears after upload.",
+      tone: "sky",
+    },
+    {
+      label: "Insight Cards",
+      value: cards.length,
+      badge: "Dashboard",
+      helper: cards.length ? "Each question becomes a reusable card." : "Run a prompt to populate the dashboard.",
+      tone: "gold",
+    },
+    {
+      label: "Latest View",
+      value: latestCard ? humanizeLabel(latestCard.chart.chart_type) : "Waiting",
+      badge: "Status",
+      helper: latestCard ? `Created ${formatTimestamp(latestCard.createdAt)}.` : "No visualizations generated yet.",
+      tone: "slate",
+    },
+  ];
+
   return (
     <>
       <Head>
-        <title>Baniyabhai AI</title>
+        <title>Baniya Dost</title>
         <meta
           name="description"
-          content="Conversational BI dashboard for CSV uploads, Gemini-powered SQL, and auto-generated charts."
+          content="Baniya Dost is a modern conversational BI workspace for CSV uploads, natural language analysis, KPI cards, and polished charts."
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
-      <main className="relative min-h-screen overflow-hidden bg-canvas text-ink">
-        <div className="absolute inset-x-0 top-0 h-80 bg-[radial-gradient(circle_at_top_left,_rgba(15,157,141,0.25),_transparent_45%),radial-gradient(circle_at_top_right,_rgba(255,122,89,0.2),_transparent_40%)]" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.72)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.72)_1px,transparent_1px)] bg-[size:64px_64px] opacity-50" />
+      <main className="min-h-screen bg-canvas text-ink">
+        <div className="mx-auto max-w-7xl px-4 pb-12 pt-6 sm:px-6 lg:px-8">
+          <Navbar />
 
-        <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-          <header className="grid gap-6 rounded-[32px] border border-white/70 bg-white/80 p-6 shadow-soft backdrop-blur xl:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-4">
-              <span className="inline-flex w-fit rounded-full border border-accent/20 bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                Conversational Business Intelligence
-              </span>
-              <div className="space-y-3">
-                <h1 className="font-heading text-4xl font-bold tracking-tight text-ink sm:text-5xl">
-                  Baniyabhai AI
-                </h1>
-                <p className="max-w-2xl text-base text-slate-600 sm:text-lg">
-                  Upload a CSV, ask a question in plain language or by voice, and get SQL-backed
-                  insights with charts in seconds.
-                </p>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-3">
-                <HeroMetricCard label="AI Engine" value="Google Gemini" tone="accent" />
-                <HeroMetricCard label="Query Layer" value="Validated SQLite" tone="gold" />
-                <HeroMetricCard label="Voice Input" value="Browser Speech API" tone="ember" />
-              </div>
-            </div>
+          <div className="mt-6 space-y-6">
+            <section id="overview" className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
+              <SurfaceCard tone="hero" className="relative overflow-hidden p-8 sm:p-10">
+                <div className="absolute inset-y-0 right-0 hidden w-1/2 bg-[radial-gradient(circle_at_center,rgba(15,118,110,0.14),transparent_58%)] lg:block" />
 
-            <div className="rounded-[28px] bg-ink p-5 text-white">
-              <p className="text-sm font-semibold uppercase tracking-[0.24em] text-white/60">
-                Starter Questions
-              </p>
-              <div className="mt-4 grid gap-3">
-                {SAMPLE_PROMPTS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => handleQuery(prompt)}
-                    disabled={!schema || querying}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/85 transition hover:border-accent/40 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </header>
+                <div className="relative space-y-8">
+                  <div className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-700">
+                    Modern Analytics Workspace
+                  </div>
 
-          <section className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-            <UploadDataset schema={schema} isUploading={uploading} onUpload={handleUpload} />
-            <QueryInput
-              disabled={!schema || querying}
-              isLoading={querying}
-              onSubmit={handleQuery}
-              placeholder={
-                schema
-                  ? "Ask about trends, segments, correlations, or follow-up questions..."
-                  : "Upload a CSV before asking your first question."
-              }
-            />
-          </section>
+                  <div className="space-y-4">
+                    <h1 className="max-w-4xl font-heading text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">
+                      Business analytics that feels like a clean SaaS command center.
+                    </h1>
+                    <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+                      Baniya Dost helps you upload data, ask better business questions, and turn raw
+                      tables into polished KPI cards, charts, and SQL-backed insight summaries.
+                    </p>
+                  </div>
 
-          <section className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-soft backdrop-blur">
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
-                  Session Status
-                </p>
-                <p className="mt-2 text-lg font-semibold text-ink">{statusMessage}</p>
-              </div>
-              {errorMessage ? (
-                <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {errorMessage}
+                  <div className="flex flex-wrap gap-3">
+                    <a
+                      href="#workspace"
+                      className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                    >
+                      Start With a Dataset
+                    </a>
+                    <a
+                      href="#dashboard"
+                      className="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-300 hover:text-slate-950"
+                    >
+                      Explore Dashboard
+                    </a>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <HeroSignalCard label="Input Modes" value="CSV + Voice" detail="Upload locally and ask by text or mic." />
+                    <HeroSignalCard label="Query Layer" value="Validated SQL" detail="Natural language converted into safe SELECT queries." />
+                    <HeroSignalCard label="Outputs" value="Cards + Charts" detail="Dashboards update with summaries, visuals, and previews." />
+                  </div>
                 </div>
-              ) : (
-                <div className="rounded-2xl border border-accent/15 bg-accent/10 px-4 py-3 text-sm text-accent">
-                  {schema
-                    ? `${schema.columns.length} columns available for Gemini-guided analysis.`
-                    : "Waiting for your first dataset upload."}
-                </div>
-              )}
-            </div>
-          </section>
+              </SurfaceCard>
 
-          <Dashboard cards={cards} isLoading={querying} />
+              <SurfaceCard tone="contrast" className="flex flex-col justify-between gap-8 p-8">
+                <div className="space-y-6">
+                  <BrandLogo theme="dark" />
+
+                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                    <StatusPanel
+                      label="Workspace Status"
+                      value={schema ? "Dataset connected" : schemaLoading ? "Loading..." : "Awaiting upload"}
+                      detail={schema ? `${formatCompactNumber(schema.row_count)} rows ready for analysis.` : "Upload a CSV to unlock prompts and charts."}
+                    />
+                    <StatusPanel
+                      label="Latest Insight"
+                      value={latestCard ? latestCard.title : "No cards yet"}
+                      detail={latestCard ? latestCard.summary : "Your first question will create a dashboard card here."}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/55">
+                        Starter Questions
+                      </p>
+                      <p className="mt-2 text-sm text-white/70">
+                        Quick prompts to populate the dashboard.
+                      </p>
+                    </div>
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-white/65">
+                      {querying ? "Working" : "Ready"}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-3">
+                    {STARTER_PROMPTS.map((prompt) => (
+                      <button
+                        key={prompt}
+                        type="button"
+                        onClick={() => handleQuery(prompt)}
+                        disabled={!schema || querying}
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm text-white/80 transition hover:border-white/20 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {prompt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </SurfaceCard>
+            </section>
+
+            <KpiStrip metrics={kpis} isLoading={schemaLoading && !schema} />
+
+            <section id="workspace" className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+              <UploadDataset
+                schema={schema}
+                isUploading={uploading}
+                isSchemaLoading={schemaLoading}
+                onUpload={handleUpload}
+              />
+              <QueryInput
+                disabled={!schema || querying}
+                isLoading={querying}
+                onSubmit={handleQuery}
+                samplePrompts={STARTER_PROMPTS}
+                placeholder={
+                  schema
+                    ? "Ask about trends, segments, retention signals, correlations, or follow-up questions..."
+                    : "Upload a CSV before asking your first question."
+                }
+              />
+            </section>
+
+            <SurfaceCard className="p-5">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+                    Session Status
+                  </p>
+                  <p className="text-lg font-semibold text-slate-950">{statusMessage}</p>
+                </div>
+
+                {errorMessage ? (
+                  <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {errorMessage}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    <StatusChip label={schema ? `${schema.columns.length} fields available` : "Waiting for upload"} />
+                    <StatusChip label={querying ? "Generating insight" : "Query engine idle"} />
+                    <StatusChip label={uploading ? "Upload in progress" : "Storage ready"} />
+                  </div>
+                )}
+              </div>
+            </SurfaceCard>
+
+            <Dashboard cards={cards} isLoading={querying} onPromptSelect={handleQuery} />
+          </div>
         </div>
       </main>
     </>
   );
 }
 
-function HeroMetricCard({ label, value, tone }) {
-  const toneMap = {
-    accent: "from-accent/20 to-accent/5 text-accent",
-    gold: "from-gold/25 to-gold/10 text-amber-700",
-    ember: "from-ember/20 to-ember/10 text-orange-700",
-  };
-
+function HeroSignalCard({ label, value, detail }) {
   return (
-    <div className={`rounded-2xl bg-gradient-to-br ${toneMap[tone]} px-4 py-4`}>
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{label}</p>
-      <p className="mt-2 font-heading text-xl font-bold">{value}</p>
+    <div className="rounded-[24px] border border-slate-200/80 bg-white/78 p-4 shadow-soft">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">{label}</p>
+      <p className="mt-3 font-heading text-xl font-semibold tracking-tight text-slate-950">{value}</p>
+      <p className="mt-2 text-sm text-slate-600">{detail}</p>
     </div>
+  );
+}
+
+function StatusPanel({ label, value, detail }) {
+  return (
+    <div className="rounded-[24px] border border-white/10 bg-white/5 p-4">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/55">{label}</p>
+      <p className="mt-3 font-heading text-2xl font-semibold tracking-tight text-white">{value}</p>
+      <p className="mt-2 text-sm text-white/65">{detail}</p>
+    </div>
+  );
+}
+
+function StatusChip({ label }) {
+  return (
+    <span className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-600">
+      {label}
+    </span>
   );
 }
