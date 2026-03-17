@@ -1,21 +1,39 @@
-<svg width="420" height="96" viewBox="0 0 420 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="520" height="120" viewBox="0 0 520 120" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="baniya-dost-icon" x1="18" y1="12" x2="74" y2="74" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0F766E" />
-      <stop offset="1" stop-color="#1D4ED8" />
-    </linearGradient>
+    <filter id="logo-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="7" result="softGlow" />
+      <feMerge>
+        <feMergeNode in="softGlow" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
   </defs>
-  <rect x="8" y="8" width="80" height="80" rx="26" fill="#0B1628" />
-  <rect x="14" y="14" width="68" height="68" rx="22" fill="url(#baniya-dost-icon)" opacity="0.18" />
-  <path d="M29 61V44.5C29 41.4624 31.4624 39 34.5 39C37.5376 39 40 41.4624 40 44.5V61" stroke="#E2F5F3" stroke-width="4" stroke-linecap="round" />
-  <path d="M46 61V30.5C46 27.4624 48.4624 25 51.5 25C54.5376 25 57 27.4624 57 30.5V61" stroke="#E2F5F3" stroke-width="4" stroke-linecap="round" />
-  <path d="M63 61V37.5C63 34.4624 65.4624 32 68.5 32C71.5376 32 74 34.4624 74 37.5V61" stroke="#E2F5F3" stroke-width="4" stroke-linecap="round" />
-  <path d="M27 23C34 18 41.5 16.8 50.7 21C57.1 23.9 62.7 23.6 69 18.5" stroke="#F8FAFC" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round" />
-  <circle cx="69.5" cy="18.5" r="3.5" fill="#F59E0B" />
-  <text x="112" y="42" fill="#0F172A" font-family="Sora, 'Segoe UI', sans-serif" font-size="27" font-weight="600" letter-spacing="-0.04em">
-    Baniya Dost
+  <path d="M148 22C171 7 204 8 217 23C223 29 222 36 214 39" fill="none" stroke="#6C0813" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M36 42H280" fill="none" stroke="#6C0813" stroke-width="4" stroke-linecap="round" />
+  <path d="M112 92C146 110 194 112 248 95" fill="none" stroke="#6C0813" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+  <text x="28" y="83" fill="#6C0813" font-family="'Tiro Devanagari Hindi', 'Noto Serif Devanagari', serif" font-size="83" font-weight="700" letter-spacing="-0.01em">
+    बनिया
   </text>
-  <text x="112" y="65" fill="#64748B" font-family="'Plus Jakarta Sans', 'Segoe UI', sans-serif" font-size="12" font-weight="700" letter-spacing="0.24em">
-    CONVERSATIONAL BI
+  <text x="266" y="84" fill="#6C0813" font-family="'Cormorant Garamond', Georgia, serif" font-size="72" font-weight="600" letter-spacing="-0.03em">
+    Dost.AI
   </text>
+  <g transform="translate(438 28)">
+    <circle cx="26" cy="30" r="24" fill="#EAB29C" opacity="0.14" filter="url(#logo-glow)" />
+    <path d="M0 12H18" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M0 30H18" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M0 48H18" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M18 12H33" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M18 30H37" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M18 48H33" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M18 12L31 2" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M18 48L31 58" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M33 12L48 12" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M37 30L54 30" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <path d="M33 48L48 48" stroke="#EAB29C" stroke-width="2.4" stroke-linecap="round" />
+    <circle cx="51" cy="12" r="3.1" fill="#F7C9B7" />
+    <circle cx="57" cy="30" r="3.1" fill="#F7C9B7" />
+    <circle cx="51" cy="48" r="3.1" fill="#F7C9B7" />
+    <circle cx="34" cy="2" r="2.8" fill="#F7C9B7" />
+    <circle cx="34" cy="58" r="2.8" fill="#F7C9B7" />
+  </g>
 </svg>

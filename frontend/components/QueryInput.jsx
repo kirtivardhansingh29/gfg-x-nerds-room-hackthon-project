@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-import SurfaceCard from "./ui/SurfaceCard";
-
-export default function QueryInput({ disabled, isLoading, onSubmit, placeholder, samplePrompts = [] }) {
+export default function QueryInput({ disabled, isLoading, onSubmit, placeholder }) {
   const [question, setQuestion] = useState("");
   const [speechSupported, setSpeechSupported] = useState(false);
   const [listening, setListening] = useState(false);
@@ -67,99 +65,70 @@ export default function QueryInput({ disabled, isLoading, onSubmit, placeholder,
   };
 
   return (
-    <SurfaceCard className="p-6">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div className="space-y-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+    <section className="rounded-[28px] border border-white/70 bg-white/85 p-6 shadow-soft backdrop-blur">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">
             Ask Baniya Dost
           </p>
-          <h2 className="font-heading text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
-            Query with text or voice
-          </h2>
-          <p className="max-w-xl text-sm leading-6 text-slate-600">
-            Turn a natural-language business question into validated SQL, then render the result as
-            a polished chart card on the dashboard.
+          <h2 className="mt-2 font-heading text-2xl font-bold text-ink">Query with text or voice</h2>
+          <p className="mt-2 max-w-xl text-sm text-slate-600">
+            Gemini turns your prompt into SQL, the backend validates it, and the dashboard picks a
+            chart automatically.
           </p>
         </div>
-
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
-          <div className="font-semibold text-slate-950">Context-aware follow-ups</div>
-          <div className="mt-1">Recent turns stay in the query history.</div>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+          <div className="font-semibold text-ink">Follow-ups</div>
+          <div>Conversation history included</div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <label className="block">
           <span className="mb-3 block text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
             Natural Language Prompt
           </span>
           <textarea
-            rows={6}
+            rows={5}
             value={question}
             disabled={disabled}
             onChange={(event) => setQuestion(event.target.value)}
             placeholder={placeholder}
-            className="w-full rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm text-ink outline-none transition placeholder:text-slate-400 focus:border-accent focus:bg-white disabled:cursor-not-allowed disabled:opacity-60"
           />
         </label>
 
-        <div className="space-y-3">
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-            Quick Angles
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {samplePrompts.slice(0, 3).map((prompt) => (
-              <button
-                key={prompt}
-                type="button"
-                onClick={() => setQuestion(prompt)}
-                disabled={disabled || isLoading}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-950 disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap gap-3">
             <button
               type="submit"
               disabled={disabled || isLoading || !question.trim()}
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-2xl bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isLoading ? (
-                <>
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                  Building Insight
-                </>
-              ) : (
-                "Run Query"
-              )}
+              {isLoading ? "Generating Insight..." : "Run Query"}
             </button>
 
             <button
               type="button"
               onClick={toggleListening}
               disabled={disabled || !speechSupported}
-              className={`inline-flex items-center justify-center rounded-full px-5 py-3 text-sm font-semibold transition ${
+              className={`rounded-2xl px-5 py-3 text-sm font-semibold transition ${
                 listening
-                  ? "bg-emerald-600 text-white hover:bg-emerald-500"
-                  : "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:text-slate-950"
+                  ? "bg-ember text-white hover:bg-orange-600"
+                  : "border border-slate-200 bg-white text-ink hover:border-accent hover:text-accent"
               } disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              {speechSupported ? (listening ? "Stop Microphone" : "Use Microphone") : "Voice Unavailable"}
+              {speechSupported ? (listening ? "Stop Mic" : "Use Microphone") : "Voice Unavailable"}
             </button>
           </div>
 
           <div className="text-sm text-slate-500">
             {listening
               ? "Listening now. Speak your question clearly."
-              : "Try asking for a comparison, trend, split, or correlation."}
+              : "Try asking for a segment comparison, trend, or correlation."}
           </div>
         </div>
       </form>
-    </SurfaceCard>
+    </section>
   );
 }

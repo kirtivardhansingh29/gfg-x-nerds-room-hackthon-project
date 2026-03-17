@@ -1,24 +1,25 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./pages/**/*.{js,jsx}", "./components/**/*.{js,jsx}", "./lib/**/*.{js,jsx}"],
+  content: [
+    "./pages/**/*.{js,jsx}",
+    "./components/**/*.{js,jsx}",
+  ],
   theme: {
     extend: {
       colors: {
-        ink: "#0F172A",
-        canvas: "#F4F7FB",
+        ink: "#07111F",
         mist: "#EEF4FB",
-        accent: "#0F766E",
-        ember: "#EA580C",
-        gold: "#F59E0B",
-        line: "#D9E4F1",
+        canvas: "#F6F8FC",
+        accent: "#0F9D8D",
+        ember: "#FF7A59",
+        gold: "#F4B740",
       },
       boxShadow: {
-        soft: "0 12px 30px rgba(15, 23, 42, 0.08)",
-        card: "0 24px 60px rgba(15, 23, 42, 0.12)",
+        soft: "0 24px 80px rgba(7, 17, 31, 0.12)",
       },
       fontFamily: {
-        heading: ["'Sora'", "sans-serif"],
-        body: ["'Plus Jakarta Sans'", "sans-serif"],
+        heading: ["'Space Grotesk'", "sans-serif"],
+        body: ["'Manrope'", "sans-serif"],
       },
     },
   },
