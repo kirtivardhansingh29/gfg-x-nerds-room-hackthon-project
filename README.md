@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🤖 Baniyabhai AI
+# 🤖 Baniyadost AI
 
 ### Conversational Business Intelligence Dashboard
 
@@ -36,7 +36,7 @@
 
 ## 🎯 Overview
 
-**Baniyabhai AI** transforms the traditional analytics workflow into an intuitive conversational experience. Upload your data, ask questions in natural language or via voice, and instantly receive SQL-backed insights with intelligent visualizations.
+**Baniyadost AI** transforms the traditional analytics workflow into an intuitive conversational experience. Upload your data, ask questions in natural language or via voice, and instantly receive SQL-backed insights with intelligent visualizations.
 
 ### The Problem
 
@@ -1070,160 +1070,7 @@ npm start
 
 ---
 
-## 🚀 Deployment
 
-### Frontend Deployment (Vercel)
-
-#### Step 1: Prepare Repository
-
-Ensure your repository is pushed to GitHub, GitLab, or Bitbucket.
-
-#### Step 2: Import to Vercel
-
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Click **"Add New Project"**
-3. Import your repository
-4. Configure project settings:
-
-**Root Directory**: `frontend`
-
-**Framework Preset**: Next.js
-
-**Build Command** (auto-detected):
-```bash
-npm run build
-```
-
-**Output Directory**: `.next`
-
-#### Step 3: Environment Variables
-
-Add in Vercel dashboard:
-
-```env
-NEXT_PUBLIC_API_BASE_URL=https://your-backend.onrender.com
-```
-
-#### Step 4: Deploy
-
-Click **"Deploy"** and wait for build completion.
-
-**Your frontend will be live at**: `https://your-app.vercel.app`
-
-#### Vercel Best Practices
-
-- Enable **Analytics** to monitor performance
-- Set up **custom domain** for production
-- Use **preview deployments** for testing
-- Configure **build caching** for faster deploys
-
----
-
-### Backend Deployment (Render)
-
-#### Step 1: Prepare Repository
-
-Ensure `backend/render.yaml` exists with:
-
-```yaml
-services:
-  - type: web
-    name: baniyabhai-backend
-    env: python
-    region: oregon
-    plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
-    healthCheckPath: /health
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.11.0
-```
-
-#### Step 2: Create Render Web Service
-
-1. Go to [Render Dashboard](https://dashboard.render.com/)
-2. Click **"New +"** → **"Web Service"**
-3. Connect your repository
-4. Configure:
-
-**Name**: `baniyabhai-backend`
-
-**Root Directory**: `backend`
-
-**Environment**: `Python 3`
-
-**Build Command**:
-```bash
-pip install -r requirements.txt
-```
-
-**Start Command**:
-```bash
-uvicorn main:app --host 0.0.0.0 --port $PORT
-```
-
-**Health Check Path**: `/health`
-
-#### Step 3: Environment Variables
-
-Add in Render dashboard:
-
-```env
-GEMINI_API_KEY=your_actual_gemini_key
-GEMINI_MODEL=gemini-2.5-flash
-BACKEND_CORS_ORIGINS=http://localhost:3000,https://your-frontend.vercel.app
-MAX_UPLOAD_SIZE_MB=25
-RATE_LIMIT_MAX_REQUESTS=30
-```
-
-> **Important**: Replace `your-frontend.vercel.app` with your actual Vercel domain
-
-#### Step 4: Deploy
-
-Click **"Create Web Service"** and monitor deployment logs.
-
-**Your backend will be live at**: `https://baniyabhai-backend.onrender.com`
-
-#### Render Best Practices
-
-- Use **paid plan** for production (free tier sleeps after inactivity)
-- Attach **persistent disk** at `/backend/data` to preserve uploads
-- Monitor **health checks** in Render dashboard
-- Set up **auto-deploy** from main branch
-
----
-
-### Post-Deployment Verification
-
-#### 1. Test Backend Health
-
-```bash
-curl https://your-backend.onrender.com/health
-```
-
-Expected response:
-```json
-{"status": "healthy", "timestamp": "2024-01-15T10:30:00Z"}
-```
-
-#### 2. Test CORS
-
-Open browser console on your Vercel frontend and check for CORS errors.
-
-#### 3. Test Full Workflow
-
-1. Visit your Vercel URL
-2. Upload a test CSV
-3. Ask a query
-4. Verify results display correctly
-
-#### 4. Monitor Logs
-
-- **Vercel**: Check deployment logs for build errors
-- **Render**: Monitor application logs for runtime errors
-
----
 
 ### Environment-Specific Considerations
 
@@ -1749,10 +1596,10 @@ If you find this project useful, please consider giving it a star ⭐
 
 <div align="center">
 
-**Built with ❤️ by [Your Name](https://github.com/yourusername)**
+**Built with ❤️ by [Kirti vardhan singh](https://github.com/kirtivardhansingh67)**
 
 Made in India 🇮🇳
 
-[⬆ Back to Top](#-baniyabhai-ai)
+[⬆ Back to Top](#-baniyadost-ai)
 
 </div>
